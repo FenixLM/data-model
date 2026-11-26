@@ -66,3 +66,12 @@
 .chat-input:focus {
   border-color: #0f172a;
 }
+
+.chat-error {
+  margin: 0;
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+}

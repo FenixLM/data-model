@@ -36,6 +36,10 @@
       }
     </div>
 
+    @if (chatError(); as err) {
+      <p class="chat-error">{{ err }}</p>
+    }
+
     <form class="chat-form" (ngSubmit)="sendMessage()">
       <input
         type="text"
