@@ -1,0 +1,58 @@
+<section class="panel chat-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Chat de la Orden</h2>
+      @if (ordersStore.selectedOrder(); as currentOrder) {
+        <span class="muted">{{ currentOrder.id }} · {{ currentOrder.customerName }}</span>
+      }
+    </div>
+    @if (session.activeProfile(); as profile) {
+      <span class="badge">Enviando como {{ profile.displayName }}</span>
+    }
+  </div>
+
+  @if (!ordersStore.selectedOrder()) {
+    <div class="panel-body">
+      <p class="empty-state">Selecciona una orden para abrir el chat.</p>
+    </div>
+  } @else {
+    <div class="chat-messages">
+      @if (messages().length === 0) {
+        <p class="empty-state">Aún no hay mensajes en esta orden. Inicia la conversación.</p>
+      } @else {
+        @for (msg of messages(); track msg.id) {
+          <div
+            class="chat-bubble"
+            [class.own]="msg.senderId === session.activeUserId()"
+          >
+            <div class="chat-meta">
+              <strong>{{ msg.senderName }}</strong>
+              <span class="role-tag">{{ msg.senderRole }}</span>
+              <span class="chat-time">{{ msg.createdAt | date: 'shortTime' }}</span>
+            </div>
+            <p class="chat-text">{{ msg.text }}</p>
+          </div>
+        }
+      }
+    </div>
+
+    <form class="chat-form" (ngSubmit)="sendMessage()">
+      <input
+        type="text"
+        class="chat-input"
+        name="draftMessage"
+        [ngModel]="draftMessage()"
+        (ngModelChange)="draftMessage.set($event)"
+        placeholder="Escribe un mensaje en tiempo real..."
+        autocomplete="off"
+      />
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="!draftMessage().trim() || isSendingMessage()"
+      >
+        Enviar
+      </button>
+    </form>
+  }
+</section>

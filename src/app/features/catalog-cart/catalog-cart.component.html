@@ -1,0 +1,114 @@
+<section class="panel">
+  <div class="panel-header">
+    <div class="panel-title-group">
+      <h2>Menú · Chifa Tay Pa</h2>
+      <span class="badge">{{ products().length }} platos</span>
+    </div>
+    <button type="button" class="btn-ghost" (click)="toggleCreateProductForm()">
+      {{ showCreateProductForm() ? 'Cancelar' : '+ Nuevo plato' }}
+    </button>
+  </div>
+
+  <div class="panel-body">
+    @if (showCreateProductForm()) {
+      <form class="create-product-form" (ngSubmit)="createProduct()">
+        <input
+          type="text"
+          class="form-input"
+          name="newProductName"
+          [ngModel]="newProductName()"
+          (ngModelChange)="newProductName.set($event)"
+          placeholder="Nombre del plato (ej. Aeropuerto Especial)"
+          autocomplete="off"
+        />
+        <div class="create-product-row">
+          <input
+            type="number"
+            class="form-input price-input"
+            name="newProductPrice"
+            [ngModel]="newProductPrice()"
+            (ngModelChange)="newProductPrice.set($event)"
+            placeholder="Precio (S/)"
+            min="0.1"
+            step="0.5"
+          />
+          <button type="submit" class="btn-primary" [disabled]="!canCreateProduct()">
+            {{ isCreatingProduct() ? 'Guardando...' : 'Guardar plato' }}
+          </button>
+        </div>
+      </form>
+    }
+
+    <ul class="product-list">
+      @for (product of products(); track product.id) {
+        <li class="product-item">
+          <div class="product-info">
+            <span class="product-name">{{ product.name }}</span>
+            <span class="product-price">{{ product.price | currency: 'PEN' : 'S/ ' }}</span>
+          </div>
+          <button type="button" class="btn-secondary" (click)="addToCart(product)">
+            + Agregar
+          </button>
+        </li>
+      }
+    </ul>
+
+    <div class="cart-section">
+      <div class="cart-header">
+        <h3>Carrito</h3>
+        <span class="muted">{{ cartItemCount() }} ítem(s)</span>
+      </div>
+
+      @if (cart().length === 0) {
+        <p class="empty-state">Agrega platos del menú para crear una orden.</p>
+      } @else {
+        <ul class="cart-list">
+          @for (entry of cart(); track entry.product.id) {
+            <li class="cart-item">
+              <div class="cart-item-info">
+                <span>{{ entry.product.name }}</span>
+                <span class="muted">
+                  {{ entry.product.price * entry.quantity | currency: 'PEN' : 'S/ ' }}
+                </span>
+              </div>
+              <div class="qty-controls">
+                <button
+                  type="button"
+                  class="btn-icon"
+                  (click)="updateCartQuantity(entry.product.id, -1)"
+                  aria-label="Disminuir cantidad"
+                >
+                  −
+                </button>
+                <span>{{ entry.quantity }}</span>
+                <button
+                  type="button"
+                  class="btn-icon"
+                  (click)="updateCartQuantity(entry.product.id, 1)"
+                  aria-label="Aumentar cantidad"
+                >
+                  +
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+
+        <div class="cart-footer">
+          <div class="cart-total">
+            <span>Total</span>
+            <strong>{{ cartTotal() | currency: 'PEN' : 'S/ ' }}</strong>
+          </div>
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="isCreatingOrder()"
+            (click)="createOrder()"
+          >
+            {{ isCreatingOrder() ? 'Creando...' : 'Crear Orden de Compra' }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</section>

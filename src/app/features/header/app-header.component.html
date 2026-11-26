@@ -1,0 +1,47 @@
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-badge">MVP</span>
+    <div>
+      <h1>mvp-data-brain</h1>
+      <p class="subtitle">Chifa Tay Pa · Pedidos y Chat en Vivo (In-Memory)</p>
+    </div>
+  </div>
+
+  <div class="user-switcher">
+    <div class="user-pills" role="group" aria-label="Selector de usuario activo">
+      @for (profile of session.publicProfiles(); track profile.userId) {
+        <button
+          type="button"
+          class="user-pill"
+          [class.active]="session.activeUserId() === profile.userId"
+          (click)="selectUser(profile.userId)"
+        >
+          <img [src]="profile.avatarUrl" [alt]="profile.displayName" class="avatar" />
+          <span>{{ profile.displayName }}</span>
+          <span class="role-tag">
+            {{ profile.userId === 'u_client_01' ? 'customer' : 'driver' }}
+          </span>
+        </button>
+      }
+    </div>
+
+    @if (session.activePrivateUser(); as priv) {
+      <div class="privacy-box">
+        <button type="button" class="btn-ghost" (click)="togglePrivateDetails()">
+          {{ showPrivateDetails() ? 'Ocultar datos privados' : 'Ver UserPrivate (1:1)' }}
+        </button>
+        @if (showPrivateDetails()) {
+          <div class="private-popover">
+            <div><strong>ID:</strong> {{ priv.id }}</div>
+            <div><strong>Rol:</strong> {{ priv.role }}</div>
+            <div><strong>Email:</strong> {{ priv.email }}</div>
+            <div><strong>Teléfono:</strong> {{ priv.phone }}</div>
+            <small class="privacy-note">
+              Nunca se expone en órdenes ni en mensajes del chat.
+            </small>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</header>

@@ -1,0 +1,22 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.panels-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .panels-grid {
+    grid-template-columns: 1fr;
+  }
+}

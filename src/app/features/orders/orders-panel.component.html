@@ -1,0 +1,58 @@
+<section class="panel">
+  <div class="panel-header">
+    <h2>Órdenes de Compra</h2>
+    <span class="badge">{{ ordersStore.orders().length }} activas</span>
+  </div>
+
+  <div class="panel-body">
+    @if (ordersStore.orders().length === 0) {
+      <p class="empty-state">No hay órdenes registradas.</p>
+    } @else {
+      <ul class="order-list">
+        @for (order of ordersStore.orders(); track order.id) {
+          <li
+            class="order-card"
+            [class.selected]="ordersStore.selectedOrder().id === order.id"
+            (click)="selectOrder(order.id)"
+          >
+            <div class="order-top">
+              <div>
+                <strong class="order-id">{{ order.id }}</strong>
+                <span class="muted"> · {{ order.customerName }}</span>
+              </div>
+              <span class="status-pill" [attr.data-status]="order.status">
+                {{ getStatusLabel(order.status) }}
+              </span>
+            </div>
+
+            <ul class="order-items-summary">
+              @for (item of order.items; track item.productId) {
+                <li>{{ item.quantity }}× {{ item.name }}</li>
+              }
+            </ul>
+
+            <div class="order-bottom">
+              <span class="order-meta">
+                {{ order.createdAt | date: 'shortTime' }} ·
+                <strong>{{ order.total | currency: 'PEN' : 'S/ ' }}</strong>
+              </span>
+
+              <div class="status-actions" (click)="$event.stopPropagation()">
+                @for (st of orderStatuses; track st.value) {
+                  <button
+                    type="button"
+                    class="status-btn"
+                    [class.active]="order.status === st.value"
+                    (click)="changeOrderStatus(order, st.value)"
+                  >
+                    {{ st.label }}
+                  </button>
+                }
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</section>
