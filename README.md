@@ -1,59 +1,30 @@
-# MvpDataBrain
+# mvp-data-brain (Adaptador PostgreSQL + Supabase Realtime)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+Aplicación Angular (Standalone Components, TypeScript `strict: true`, Signals) para pedidos y chat en tiempo real, conectada a **PostgreSQL mediante Supabase** bajo el Patrón Repositorio (`InjectionToken`).
 
-## Development server
+## Cómo levantar esta rama con Supabase
 
-To start a local development server, run:
+1. **Crear proyecto en Supabase:**
+   - Ingresa a [Supabase Dashboard](https://supabase.com/dashboard) y crea un nuevo proyecto.
 
-```bash
-ng serve
-```
+2. **Ejecutar el esquema SQL en el SQL Editor:**
+   - Abre **SQL Editor** en tu proyecto de Supabase.
+   - Copia y pega todo el contenido de [supabase/schema.sql](supabase/schema.sql) y ejecútalo. Esto crea las 7 tablas normalizadas (`users`, `profiles`, `restaurants`, `products`, `orders`, `order_items`, `order_messages`), habilita RLS, activa **Realtime** en `orders` y `order_messages`, y siembra los datos iniciales.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+3. **Copiar credenciales en `src/environments/environment.ts`:**
+   - En **Project Settings → API**, copia el **Project URL** y la **anon public key**.
+   - Pégalos en `src/environments/environment.ts` (usando `src/environments/environment.example.ts` como referencia; `environment.ts` está ignorado en `.gitignore`).
 
-## Code scaffolding
+4. **Instalar dependencias y ejecutar la aplicación:**
+   ```bash
+   npm install
+   npm start
+   ```
+   - Abre `http://localhost:4200/` en dos pestañas para probar la creación de órdenes, cambios de estado y chat en tiempo real vía Supabase Realtime.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Modelado Relacional y Seguridad
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- **Separación 1:1 por privacidad:** `users` (datos sensibles con RLS `auth.uid() = id`) vs. `profiles` (lectura pública para UI y chat).
+- **Normalización e historial:** `orders` + `order_items` (`BIGINT GENERATED ALWAYS AS IDENTITY` y `unit_price` histórico).
+- **Extensibilidad híbrida:** `restaurants.metadata` con `JSONB`.
+- Para más detalles, consulta [docs/DATA_MODEL.md](docs/DATA_MODEL.md).

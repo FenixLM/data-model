@@ -5,17 +5,17 @@ import {
   PRODUCT_REPOSITORY,
   USER_REPOSITORY,
 } from './core/repositories/data.repositories';
-import { InMemoryChatRepository } from './infrastructure/in-memory/in-memory-chat.repository';
-import { InMemoryOrderRepository } from './infrastructure/in-memory/in-memory-order.repository';
-import { InMemoryProductRepository } from './infrastructure/in-memory/in-memory-product.repository';
-import { InMemoryUserRepository } from './infrastructure/in-memory/in-memory-user.repository';
+import { SupabaseChatRepository } from './infrastructure/supabase/supabase-chat.repository';
+import { SupabaseOrderRepository } from './infrastructure/supabase/supabase-order.repository';
+import { SupabaseProductRepository } from './infrastructure/supabase/supabase-product.repository';
+import { SupabaseUserRepository } from './infrastructure/supabase/supabase-user.repository';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    { provide: PRODUCT_REPOSITORY, useClass: InMemoryProductRepository },
-    { provide: ORDER_REPOSITORY, useClass: InMemoryOrderRepository },
-    { provide: CHAT_REPOSITORY, useClass: InMemoryChatRepository },
-    { provide: USER_REPOSITORY, useClass: InMemoryUserRepository },
+    { provide: PRODUCT_REPOSITORY, useClass: SupabaseProductRepository },
+    { provide: ORDER_REPOSITORY, useClass: SupabaseOrderRepository },
+    { provide: CHAT_REPOSITORY, useClass: SupabaseChatRepository },
+    { provide: USER_REPOSITORY, useClass: SupabaseUserRepository },
   ],
 };
