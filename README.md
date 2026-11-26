@@ -1,59 +1,34 @@
-# MvpDataBrain
+# mvp-data-brain (Adaptador NestJS + Prisma ORM + Neon PostgreSQL)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+Aplicación Angular (Standalone Components, TypeScript `strict: true`, Signals) para pedidos y chat en tiempo real, conectada vía **HTTP + Server-Sent Events (SSE)** a un backend en **NestJS + Prisma ORM** sobre **Neon (PostgreSQL Serverless)**.
 
-## Development server
+## Cómo levantar esta rama con Neon
 
-To start a local development server, run:
+1. **Crear un proyecto gratuito en Neon y copiar el connection string:**
+   - Ingresa a [Neon Console](https://console.neon.tech/) y crea un proyecto PostgreSQL.
+   - Copia las URLs de conexión en `backend/.env` (usa `backend/.env.example` como plantilla; `backend/.env` está ignorado en `.gitignore`):
+     - `DATABASE_URL`: URL con `-pooler` (para el tráfico de la aplicación).
+     - `DIRECT_URL`: URL directa sin `-pooler` (requerida por `prisma migrate`).
 
-```bash
-ng serve
-```
+2. **Instalar dependencias, migrar, sembrar y levantar el backend (`/backend`):**
+   ```bash
+   cd backend
+   npm install
+   npx prisma migrate dev --name init
+   npx prisma db seed
+   npm run start:dev
+   ```
+   - El backend quedará escuchando en `http://localhost:3000/api` con CORS habilitado para `http://localhost:4200`.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+3. **Instalar dependencias y levantar el frontend Angular (`/`):**
+   ```bash
+   npm install
+   npm start
+   ```
+   - Abre `http://localhost:4200/` en dos pestañas para probar la creación de órdenes (transacción Prisma), el chat en vivo vía **SSE** (`GET /api/stream`) y la validación anti-IDOR en `GET /api/users/:id/private`.
 
-## Code scaffolding
+## Arquitectura de esta Rama (Serverless DB vs. BaaS)
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- **Backend NestJS (`/backend`):** Controla transacciones (`prisma.$transaction`), validación anti-IDOR con header `x-user-id`, proyección segura de perfiles públicos (`UserProfile` vs `UserPrivate`) y tiempo real con `EventEmitter2` + `@Sse('stream')`.
+- **Frontend Angular (`/src/app/infrastructure/neon-api`):** Implementa los 4 repositorios usando `HttpClient` y `EventSource`, registrados en `src/app/app.config.ts` sin modificar los componentes de UI.
+- Para más detalles del modelo de datos, consulta [docs/DATA_MODEL.md](docs/DATA_MODEL.md).

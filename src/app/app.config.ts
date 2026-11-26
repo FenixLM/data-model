@@ -1,3 +1,4 @@
+import { provideHttpClient } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import {
   CHAT_REPOSITORY,
@@ -5,17 +6,18 @@ import {
   PRODUCT_REPOSITORY,
   USER_REPOSITORY,
 } from './core/repositories/data.repositories';
-import { InMemoryChatRepository } from './infrastructure/in-memory/in-memory-chat.repository';
-import { InMemoryOrderRepository } from './infrastructure/in-memory/in-memory-order.repository';
-import { InMemoryProductRepository } from './infrastructure/in-memory/in-memory-product.repository';
-import { InMemoryUserRepository } from './infrastructure/in-memory/in-memory-user.repository';
+import { HttpChatRepository } from './infrastructure/neon-api/http-chat.repository';
+import { HttpOrderRepository } from './infrastructure/neon-api/http-order.repository';
+import { HttpProductRepository } from './infrastructure/neon-api/http-product.repository';
+import { HttpUserRepository } from './infrastructure/neon-api/http-user.repository';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    { provide: PRODUCT_REPOSITORY, useClass: InMemoryProductRepository },
-    { provide: ORDER_REPOSITORY, useClass: InMemoryOrderRepository },
-    { provide: CHAT_REPOSITORY, useClass: InMemoryChatRepository },
-    { provide: USER_REPOSITORY, useClass: InMemoryUserRepository },
+    provideHttpClient(),
+    { provide: PRODUCT_REPOSITORY, useClass: HttpProductRepository },
+    { provide: ORDER_REPOSITORY, useClass: HttpOrderRepository },
+    { provide: CHAT_REPOSITORY, useClass: HttpChatRepository },
+    { provide: USER_REPOSITORY, useClass: HttpUserRepository },
   ],
 };

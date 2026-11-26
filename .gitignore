@@ -45,3 +45,8 @@ Thumbs.db
 
 # Firebase local environment credentials
 /src/environments/environment.ts
+
+# Backend NestJS + Neon local secrets and build artifacts
+/backend/.env
+/backend/node_modules
+/backend/dist

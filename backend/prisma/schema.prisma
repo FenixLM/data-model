@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String         @id @default(uuid()) @db.Uuid
+  email     String         @unique
+  phone     String?
+  role      String
+  createdAt DateTime       @default(now()) @map("created_at")
+  profile   Profile?
+  orders    Order[]
+  messages  OrderMessage[]
+
+  @@map("users")
+}
+
+model Profile {
+  userId      String @id @map("user_id") @db.Uuid
+  displayName String @map("display_name")
+  avatarUrl   String @map("avatar_url")
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Restaurant {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String
+  address  String?
+  metadata Json      @default("{}")
+  products Product[]
+  orders   Order[]
+
+  @@map("restaurants")
+}
+
+model Product {
+  id           String      @id @default(uuid()) @db.Uuid
+  restaurantId String      @map("restaurant_id") @db.Uuid
+  name         String
+  price        Decimal     @db.Decimal(10, 2)
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderItems   OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @map("user_id") @db.Uuid
+  restaurantId String         @map("restaurant_id") @db.Uuid
+  status       String
+  total        Decimal        @db.Decimal(10, 2)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  user         User           @relation(fields: [userId], references: [id])
+  restaurant   Restaurant     @relation(fields: [restaurantId], references: [id])
+  items        OrderItem[]
+  messages     OrderMessage[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        BigInt  @id @default(autoincrement())
+  orderId   String  @map("order_id") @db.Uuid
+  productId String  @map("product_id") @db.Uuid
+  quantity  Int
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model OrderMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @map("order_id") @db.Uuid
+  senderId  String   @map("sender_id") @db.Uuid
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id])
+
+  @@map("order_messages")
+}
