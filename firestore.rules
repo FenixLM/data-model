@@ -1,0 +1,96 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // 1. Catálogo de Restaurantes (Relación 1:N embebida en 1 documento)
+    // =========================================================================
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+
+      // Permite sembrar el documento inicial si aún no existe (para la demo).
+      // En producción: restringir escritura a administradores (request.auth.token.admin == true).
+      allow create: if !exists(/databases/$(database)/documents/restaurants/$(restaurantId))
+                    && request.resource.data.keys().hasAll(['name', 'menu'])
+                    && request.resource.data.menu is list;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menu'])
+                    && request.resource.data.menu is list;
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2. Perfiles Públicos (Separación 1:1 - Datos seguros para UI y Chat)
+    // =========================================================================
+    match /profiles/{userId} {
+      // Lectura pública permitida para mostrar nombre y avatar en órdenes/chat
+      allow read: if true;
+
+      // En producción: allow write: if request.auth != null && request.auth.uid == userId;
+      // Permitimos create si aún no existe para que funcione "Seed Datos Iniciales" sin login.
+      allow create: if !exists(/databases/$(database)/documents/profiles/$(userId));
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // =========================================================================
+    // 3. Datos Privados de Usuario (Separación 1:1 - Email, Teléfono, Rol)
+    // =========================================================================
+    match /users/{userId} {
+      // REGLA ESTRICTA DE PRODUCCIÓN:
+      // Solo el propietario autenticado puede leer o modificar sus datos privados.
+      // Esto evita que otros usuarios (clientes o repartidores) consulten email/teléfono.
+      //
+      // MODO DEMO SIN AUTH: Si deseas probar la lectura de UserPrivate sin Firebase Auth,
+      // puedes cambiar temporalmente a `if true;` solo en desarrollo local y revertir antes de desplegar.
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // =========================================================================
+    // 4. Órdenes de Compra y Subcolección de Mensajes (Prevención básica de IDOR)
+    // =========================================================================
+    match /orders/{orderId} {
+      function isValidOrder() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['userId', 'customerName', 'status', 'items', 'total', 'createdAt'])
+          && data.userId is string
+          && data.customerName is string
+          && data.status in ['pending', 'preparing', 'on_the_way', 'delivered']
+          && data.items is list
+          && data.items.size() > 0
+          && data.total is number
+          && data.total > 0;
+      }
+
+      // En producción, restringir read/update al dueño (resource.data.userId == request.auth.uid)
+      // o al repartidor asignado (request.auth.token.role == 'driver').
+      allow read: if true;
+      allow create: if isValidOrder()
+                    && (request.auth == null || request.resource.data.userId == request.auth.uid);
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                    && request.resource.data.status in ['pending', 'preparing', 'on_the_way', 'delivered'];
+      allow delete: if false;
+
+      // Subcolección 1:N de Chat por Orden
+      match /messages/{messageId} {
+        function isValidMessage() {
+          let msg = request.resource.data;
+          return msg.keys().hasAll(['orderId', 'senderId', 'senderName', 'senderRole', 'text', 'createdAt'])
+            && msg.orderId == orderId
+            && msg.senderId is string
+            && msg.senderName is string
+            && msg.senderRole in ['customer', 'driver']
+            && msg.text is string
+            && msg.text.size() > 0
+            && msg.text.size() <= 1000;
+        }
+
+        // Prevención básica de IDOR: el mensaje debe pertenecer a la orden padre (msg.orderId == orderId)
+        // y en producción verificar que request.auth.uid sea el dueño de la orden o el repartidor.
+        allow read: if true;
+        allow create: if isValidMessage()
+                      && (request.auth == null || request.resource.data.senderId == request.auth.uid);
+        allow update, delete: if false;
+      }
+    }
+  }
+}

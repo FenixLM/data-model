@@ -42,6 +42,15 @@ export class CatalogCartComponent {
 
   protected readonly cart = signal<CartEntry[]>([]);
   protected readonly isCreatingOrder = signal<boolean>(false);
+  protected readonly orderError = signal<string | null>(null);
+  protected readonly isSeeding = signal<boolean>(false);
+
+  protected readonly canSeed = computed(
+    () =>
+      this.products().length === 0 &&
+      typeof (this.productRepo as { seedInitialData?: () => Promise<boolean> }).seedInitialData ===
+        'function',
+  );
 
   protected readonly cartTotal = computed(() =>
     this.cart().reduce((sum, entry) => sum + entry.product.price * entry.quantity, 0),
@@ -100,11 +109,14 @@ export class CatalogCartComponent {
 
   protected async createOrder(): Promise<void> {
     const entries = this.cart();
-    const profile = this.session.activeProfile();
-    if (entries.length === 0 || !profile || this.isCreatingOrder()) {
+    if (entries.length === 0 || this.isCreatingOrder()) {
       return;
     }
 
+    const activeUserId = this.session.activeUserId();
+    const customerName = this.session.activeUserName();
+
+    this.orderError.set(null);
     this.isCreatingOrder.set(true);
     try {
       const items: OrderItem[] = entries.map((e) => ({
@@ -115,15 +127,34 @@ export class CatalogCartComponent {
       }));
 
       await this.ordersStore.createOrder({
-        userId: profile.userId,
-        customerName: profile.displayName,
+        userId: activeUserId,
+        customerName,
         items,
         total: this.cartTotal(),
       });
 
       this.cart.set([]);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'No se pudo crear la orden en Firestore.';
+      this.orderError.set(message);
+      console.error('[CatalogCartComponent] Error al crear orden:', err);
     } finally {
       this.isCreatingOrder.set(false);
+    }
+  }
+
+  protected async seedInitialData(): Promise<void> {
+    const repo = this.productRepo as { seedInitialData?: () => Promise<boolean> };
+    if (!repo.seedInitialData || this.isSeeding()) {
+      return;
+    }
+
+    this.isSeeding.set(true);
+    try {
+      await repo.seedInitialData();
+    } finally {
+      this.isSeeding.set(false);
     }
   }
 }

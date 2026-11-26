@@ -132,3 +132,9 @@
   justify-content: space-between;
   font-size: 0.95rem;
 }
+
+.error-text {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #b91c1c;
+}

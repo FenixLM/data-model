@@ -27,27 +27,32 @@ export class OrderChatComponent {
 
   protected readonly draftMessage = signal<string>('');
   protected readonly isSendingMessage = signal<boolean>(false);
+  protected readonly chatError = signal<string | null>(null);
 
   protected async sendMessage(): Promise<void> {
     const text = this.draftMessage().trim();
     const order = this.ordersStore.selectedOrder();
-    const profile = this.session.activeProfile();
-    const privateUser = this.session.activePrivateUser();
 
-    if (!text || !order || !profile || !privateUser || this.isSendingMessage()) {
+    if (!text || !order || this.isSendingMessage()) {
       return;
     }
 
+    this.chatError.set(null);
     this.isSendingMessage.set(true);
     try {
       await this.chatRepo.sendMessage({
         orderId: order.id,
-        senderId: profile.userId,
-        senderName: profile.displayName,
-        senderRole: privateUser.role,
+        senderId: this.session.activeUserId(),
+        senderName: this.session.activeUserName(),
+        senderRole: this.session.activeUserRole(),
         text,
       });
       this.draftMessage.set('');
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'No se pudo enviar el mensaje en Firestore.';
+      this.chatError.set(message);
+      console.error('[OrderChatComponent] Error al enviar mensaje:', err);
     } finally {
       this.isSendingMessage.set(false);
     }

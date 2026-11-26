@@ -5,17 +5,17 @@ import {
   PRODUCT_REPOSITORY,
   USER_REPOSITORY,
 } from './core/repositories/data.repositories';
-import { InMemoryChatRepository } from './infrastructure/in-memory/in-memory-chat.repository';
-import { InMemoryOrderRepository } from './infrastructure/in-memory/in-memory-order.repository';
-import { InMemoryProductRepository } from './infrastructure/in-memory/in-memory-product.repository';
-import { InMemoryUserRepository } from './infrastructure/in-memory/in-memory-user.repository';
+import { FirestoreChatRepository } from './infrastructure/firebase/firestore-chat.repository';
+import { FirestoreOrderRepository } from './infrastructure/firebase/firestore-order.repository';
+import { FirestoreProductRepository } from './infrastructure/firebase/firestore-product.repository';
+import { FirestoreUserRepository } from './infrastructure/firebase/firestore-user.repository';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    { provide: PRODUCT_REPOSITORY, useClass: InMemoryProductRepository },
-    { provide: ORDER_REPOSITORY, useClass: InMemoryOrderRepository },
-    { provide: CHAT_REPOSITORY, useClass: InMemoryChatRepository },
-    { provide: USER_REPOSITORY, useClass: InMemoryUserRepository },
+    { provide: PRODUCT_REPOSITORY, useClass: FirestoreProductRepository },
+    { provide: ORDER_REPOSITORY, useClass: FirestoreOrderRepository },
+    { provide: CHAT_REPOSITORY, useClass: FirestoreChatRepository },
+    { provide: USER_REPOSITORY, useClass: FirestoreUserRepository },
   ],
 };

@@ -40,6 +40,19 @@
     }
 
     <ul class="product-list">
+      @if (canSeed()) {
+        <li class="product-item">
+          <span class="muted">Sin menú en Firestore aún.</span>
+          <button
+            type="button"
+            class="btn-secondary"
+            [disabled]="isSeeding()"
+            (click)="seedInitialData()"
+          >
+            {{ isSeeding() ? 'Sembrando...' : 'Seed Datos Iniciales' }}
+          </button>
+        </li>
+      }
       @for (product of products(); track product.id) {
         <li class="product-item">
           <div class="product-info">
@@ -107,6 +120,9 @@
           >
             {{ isCreatingOrder() ? 'Creando...' : 'Crear Orden de Compra' }}
           </button>
+          @if (orderError(); as err) {
+            <p class="error-text">{{ err }}</p>
+          }
         </div>
       }
     </div>

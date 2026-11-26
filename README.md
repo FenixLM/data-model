@@ -1,59 +1,30 @@
-# MvpDataBrain
+# mvp-data-brain (Adaptador Cloud Firestore)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+Aplicación Angular (Standalone Components, TypeScript `strict: true`, Signals) para pedidos y chat en tiempo real, conectada a **Firebase Cloud Firestore** mediante el Patrón Repositorio (`InjectionToken`).
 
-## Development server
+## Cómo levantar esta rama con Firebase
 
-To start a local development server, run:
+1. **Crear proyecto en Firebase Console y habilitar Cloud Firestore:**
+   - Ingresa a [Firebase Console](https://console.firebase.google.com/), crea un proyecto nuevo y habilita **Cloud Firestore** (puedes iniciar en modo de prueba o desplegar las reglas incluidas en `firestore.rules`).
 
-```bash
-ng serve
-```
+2. **Registrar una Web App y copiar el `firebaseConfig`:**
+   - En la configuración del proyecto de Firebase, registra una aplicación **Web** (`</>`).
+   - Copia el objeto `firebaseConfig` y pégalo en `src/environments/environment.ts` (usa `src/environments/environment.example.ts` como plantilla; `environment.ts` está ignorado en `.gitignore`).
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+3. **Ejecutar la aplicación y sembrar los datos iniciales:**
+   ```bash
+   npm install
+   npm start
+   ```
+   - Abre `http://localhost:4200/` en tu navegador y presiona el botón discreto **"Seed Datos Iniciales"** en el panel del menú (se muestra automáticamente si `restaurants/rest_chifa_01` aún no existe en Firestore).
 
-## Code scaffolding
+4. **Verificar en tiempo real (opcional):**
+   - Abre dos pestañas en `http://localhost:4200/`, crea una orden o envía mensajes en el chat y observa cómo `onSnapshot` sincroniza ambos clientes en tiempo real.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Modelado NoSQL y Seguridad
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- **Relación 1:N embebida:** `restaurants/rest_chifa_01` contiene `menu: Product[]` en un solo documento.
+- **Colección raíz + denormalización:** `orders/{orderId}` guarda `customerName` denormalizado y se escucha con `onSnapshot` ordenado por `createdAt` descendente.
+- **Subcolección 1:N:** `orders/{orderId}/messages/{messageId}` almacena los mensajes de cada orden en tiempo real.
+- **Separación 1:1 por privacidad:** `profiles/{userId}` (público) vs. `users/{userId}` (privado), protegido en `firestore.rules` para evitar exposición de `email` y `phone`.
+- Para más detalles, consulta [docs/DATA_MODEL.md](docs/DATA_MODEL.md).

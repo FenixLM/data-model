@@ -42,3 +42,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Firebase local environment credentials
+/src/environments/environment.ts
